@@ -1,0 +1,49 @@
+name:                dargon
+version:             0.1.0.0
+synopsis:            Programming language
+description:         Please see README.md
+homepage:            https://github.com/githubuser/dargon#readme
+license:             MIT
+license-file:        LICENSE
+author:              Xavier Perez
+maintainer:          duosrx@gmail.com
+copyright:           2016 Xavier Perez
+category:            Compiler
+build-type:          Simple
+extra-source-files:  README.md
+cabal-version:       >=1.10
+
+executable dargon
+  hs-source-dirs:      src
+  main-is:             Main.hs
+  other-modules:       Interpreter
+                     , Lexer
+                     , Parser
+                     , TypeInference
+                     , Types
+  build-depends:       base >= 4.7 && < 5
+                     , containers
+                     , mtl
+                     , transformers
+                     , attoparsec
+                     , parsec
+                     , bytestring
+                     , text
+                     , repline
+  default-language:    Haskell2010
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N -Wall -O2 -fno-warn-name-shadowing -fno-warn-missing-signatures
+
+test-suite dargon-test
+  type:                exitcode-stdio-1.0
+  hs-source-dirs:      test
+  main-is:             Spec.hs
+  build-depends:       base
+                     , dargon
+                     , hspec
+                     , QuickCheck
+  ghc-options:         -threaded -rtsopts -with-rtsopts=-N
+  default-language:    Haskell2010
+
+source-repository head
+  type:     git
+  location: https://github.com/duosrx/dargon
