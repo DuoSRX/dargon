@@ -1,10 +1,9 @@
 module Parser where
 
-import Data.Char (isLetter, isDigit)
 import Text.Parsec
 import Text.Parsec.String
-import Text.Parsec.Char (oneOf, char, digit, satisfy)
-import Text.Parsec.Combinator (many1, choice, chainl1)
+import Text.Parsec.Char (char)
+import Text.Parsec.Combinator (many1)
 
 import Text.Parsec.Expr as Ex
 

@@ -1,12 +1,8 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module TypeInference where
 
-import Data.Char
 import Data.Maybe (fromMaybe)
-import Data.Monoid
 import Control.Monad.Except
-import Control.Monad.Identity
-import Control.Monad.Trans.Reader
 import Control.Monad.Trans.State
 import qualified Data.Map as Map
 import qualified Data.Set as Set
@@ -31,7 +27,7 @@ instance Types Type where
   ftv (TFun t1 t2) = ftv t1 `Set.union` ftv t2
   apply s (TVar n) = fromMaybe (TVar n) (Map.lookup n s)
   apply s (TFun t1 t2) = TFun (apply s t1) (apply s t2)
-  apply s t = t
+  apply _ t = t
 
 instance Types Scheme where
   ftv (Scheme vars t) = ftv t `Set.difference` Set.fromList vars
@@ -153,7 +149,7 @@ ti env (ELam n e) = do
       env'' = TypeEnv (env' `Map.union` Map.singleton n (Scheme [] tv))
   (s1, t1) <- ti env'' e
   return (s1, TFun (apply s1 tv) t1)
-ti env exp@(EApp e1 e2) = do
+ti env (EApp e1 e2) = do
   tv <- newTyVar
   (s1, t1) <- ti env e1
   (s2, t2) <- ti (apply s1 env) e2

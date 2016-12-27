@@ -75,6 +75,7 @@ instance Show Exp where
 prExp :: Exp -> String
 prExp (EVar name) = name
 prExp (ELit lit)  = prLit lit
+prExp (EFix e) = "fix " ++ prExp e
 prExp (ELet x b body) = "let " ++ x ++ " = " ++ prExp b ++ " in " ++ prExp body
 prExp (EApp e1 e2) = prExp e1 ++ " " ++ prParenExp e2
 prExp (ELam n e) = "fn " ++ n ++ " -> " ++ prExp e

@@ -2,8 +2,7 @@
 module Lib (main) where
 
 import Control.Monad.State.Strict
-import Control.Monad.IO.Class
-import Data.Functor.Identity
+import Data.Maybe
 import Data.Monoid
 
 import System.Console.Repline
@@ -11,9 +10,7 @@ import System.Exit
 import System.IO
 
 import Interpreter
-import Lexer
 import Parser
-import Types
 import TypeInference
 
 data InterpreterState = InterpreterState {
@@ -43,13 +40,11 @@ cmd input = do
             Nothing -> return ()
             Just expr -> do
               let (val, _) = runEval (terms newState) "expr" expr
-              let valType = case typeOf (types newState) "expr" of
-                              Just t -> t
-                              Nothing -> error "This shouldn't happen"
+              let valType = fromMaybe (error "Impossible") (typeOf (types newState) "expr")
               liftIO $ putStrLn $ show val ++ " : " ++ show valType
 
 evalDeclaration env (name, expr) = newTermsContext
-  where (val, newTermsContext) = runEval env name expr
+  where (_, newTermsContext) = runEval env name expr
 
 quit :: a -> Repl ()
 quit _ = liftIO exitSuccess
@@ -63,8 +58,8 @@ showType args = do
     Nothing -> liftIO $ putStrLn "¯\\_(ツ)_/¯"
 
 -- TODO: Add real completion
-complete :: (Monad m, MonadState InterpreterState m) => WordCompleter m
-complete n = return []
+complete :: (MonadState InterpreterState m) => WordCompleter m
+complete _ = return []
 
 completer :: CompleterStyle (StateT InterpreterState IO)
 completer = Prefix (wordCompleter complete) []

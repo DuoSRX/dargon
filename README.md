@@ -3,7 +3,7 @@
 A simple programming language vaguely inspired the ML family of languages.  
 This is a work in progress! Made for fun to better understand type systems.  
 
-Resource used:
+Resources used:
 
 * [Type Inference and Unification, CS3110 Cornell](http://www.cs.cornell.edu/Courses/cs3110/2009fa/lectures/lec26a.htm)
 * [Algorithm W Step by Step, Martin Grabmuller](https://github.com/wh5a/Algorithm-W-Step-By-Step)

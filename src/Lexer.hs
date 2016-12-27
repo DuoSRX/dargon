@@ -1,6 +1,5 @@
 module Lexer where
 
-import Control.Applicative
 import Data.Functor.Identity
 import Text.Parsec
 import Text.Parsec.String
