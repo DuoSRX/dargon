@@ -17,20 +17,19 @@ data Exp
   | EIf Exp Exp Exp
   -- Fix point. Used for recursion with letrec
   | EFix Exp
-  -- Case expression
-  -- | ECase Exp [CaseMatch]
+  -- Case expression (scrutinee and pairs of match pattern/arms)
+  | ECase Exp [(Pattern, Exp)]
   deriving (Eq, Ord)
 
--- The arms of a case expression
--- data CaseMatch = CaseMatch Pattern Exp deriving (Eq, Ord)
+data Pattern
+  = PVar String
+  | PLit Lit
+  -- | PWildcard
+  deriving (Eq, Ord, Show)
 
--- -- Pattern for a case expression
--- data Pattern
---   = PatternVar String
--- --   | PatternConstr Constr [Pattern]
---   | PatternLit Lit
---   | PatternWildcard
---   deriving (Eq, Ord, Show)
+-- foo = ECase (EVar "x") [ (PLit (LInt 0), ELit (LBool True))
+--                        , (PLit (LInt 1), ELit (LBool False))
+--                        , (PVar "y",      EVar "z")]
 
 data Lit
   = LInt Integer
@@ -81,6 +80,7 @@ prExp (EApp e1 e2) = prExp e1 ++ " " ++ prParenExp e2
 prExp (ELam n e) = "fn " ++ n ++ " -> " ++ prExp e
 prExp (EOp op a b) = prExp a ++ " " ++ show op ++ " " ++ prExp b
 prExp (EIf pred t e) = "if " ++ prExp pred ++ " then " ++ prExp t ++ " else " ++ prExp e
+prExp (ECase s arms) = "case " ++ prExp s ++ " of " ++ show arms
 
 prParenExp :: Exp -> String
 prParenExp t = case t of

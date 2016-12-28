@@ -11,6 +11,7 @@ data Value
   | VChar Char
   | VString String
   | VClosure String Exp TermEnv
+  deriving (Eq)
 
 instance Show Value where
   show (VInt i) = show i
@@ -25,12 +26,28 @@ type Interpreter t = Identity t
 emptyTermEnv :: TermEnv
 emptyTermEnv = Map.empty
 
+match :: TermEnv -> Pattern -> Value -> Bool
+match env p v = let val = evalPattern env p
+                in val == v
+
+evalPattern :: TermEnv -> Pattern -> Value
+evalPattern env pat = case pat of
+  PVar v -> runIdentity $ eval env (EVar v)
+  PLit l -> runIdentity $ eval env (ELit l)
+
 eval :: TermEnv -> Exp -> Interpreter Value
 eval env expr = case expr of
   ELit (LInt x)  -> return $ VInt x
   ELit (LBool x) -> return $ VBool x
   ELit (LChar x) -> return $ VChar x
   ELit (LString x) -> return $ VString x
+
+  ECase scrutinee arms -> do
+    scrutinee' <- eval env scrutinee
+    let res = filter fst $ map (\(pat, arm) -> (match env pat scrutinee', arm)) arms
+    case res of
+      (res:_) -> eval env (snd res)
+      _ -> error "No matching arms"
 
   EVar x -> do
     let Just v = Map.lookup x env

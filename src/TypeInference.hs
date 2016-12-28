@@ -114,11 +114,25 @@ unify (TFun l r) (TFun l' r') = do
   return $ s1 `composeSubst` s2
 unify (TVar u) t = varBind u t
 unify t (TVar u) = varBind u t
-unify TBool TBool     = return nullSubst
-unify TInt TInt       = return nullSubst
-unify TChar TChar     = return nullSubst
-unify TString TString = return nullSubst
+-- unify TBool TBool     = return nullSubst
+-- unify TInt TInt       = return nullSubst
+-- unify TChar TChar     = return nullSubst
+-- unify TString TString = return nullSubst
+unify t1 t2 | t1 == t2 = return nullSubst
 unify t1 t2 = throwError $ CantUnify t1 t2
+
+-- unifyMany :: [Type] -> [Type] -> TI (Subst, Type)
+-- unifyMany [] t = return (nullSubst, t)
+-- unifyMany t [] = return (nullSubst, t)
+-- unifyMany (t1:t1s) (t2:t2s) = do
+--   (s1, t1x) <- unify t1 t2
+--   (s2, t2x) <- unifyMany (apply s1 t1s) (apply s1 t2s)
+--   return (s2 `composeSubst` s1, t1x <> t2x)
+
+-- unifyMany :: [Type] -> TI Subst
+-- unifyMany [] = return nullSubst
+-- unifyMany ts = do
+--   foldr1 (\subst t -> ) ts
 
 -- Construct a substitution from a name to a type unless
 -- that name is already free in that type.
@@ -133,6 +147,10 @@ tiLit (LInt _) = return (nullSubst, TInt)
 tiLit (LBool _) = return (nullSubst, TBool)
 tiLit (LChar _) = return (nullSubst, TChar)
 tiLit (LString _) = return (nullSubst, TString)
+
+patternToExp :: Pattern -> Exp
+patternToExp (PVar v) = EVar v
+patternToExp (PLit l) = ELit l
 
 -- Infers types for expressions
 ti :: TypeEnv -> Exp -> TI (Subst, Type)
@@ -181,6 +199,27 @@ ti env (EFix e) = do
   tv <- newTyVar
   s2 <- unify (TFun tv tv) t1
   return (s2, apply s1 tv)
+ti env (ECase scrutinee arms) = do
+  -- This works but... I'm 100% sure this is buggy as hell. And horrible.
+  (_s1, t1) <- ti env scrutinee
+  conds <- mapM (ti env . patternToExp . fst) arms
+  _ <- mapM (unify t1) (map snd conds)
+
+  (s2, t2) <- ti env (snd $ head arms)
+  exprs <- mapM (ti env . snd) arms
+  matches <- mapM (unify t2) (map snd exprs)
+  return (foldr1 composeSubst matches, apply s2 t2)
+
+-- tiPat :: Pattern -> TI (Type)
+-- tiPat (PVar _) = do
+--   v <- newTyVar
+--   return v
+-- tiPat (PWildcard) = do
+--   v <- newTyVar
+--   return v
+-- tiPat (PLit l) = do
+--   (_, t) <- tiLit l
+--   return t
 
 ops :: Map.Map Binop Type
 ops = Map.fromList [

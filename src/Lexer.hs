@@ -11,7 +11,7 @@ type Op a = Ex.Operator String () Identity a
 type Operators a = Ex.OperatorTable String () Identity a
 
 reservedNames :: [String]
-reservedNames = ["let", "letrec", "in", "fn", "if", "then", "else"]
+reservedNames = ["let", "letrec", "in", "fn", "if", "then", "else", "case", "of"]
 
 reservedOpNames :: [String]
 reservedOpNames = ["->", "+", "-", "*", "="]
@@ -48,6 +48,9 @@ integer = Tok.integer lexer
 
 semi :: Parser String
 semi = Tok.semi lexer
+
+comma :: Parser String
+comma = Tok.comma lexer
 
 contents :: Parser a -> Parser a
 contents c = do

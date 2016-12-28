@@ -48,6 +48,7 @@ allExp =     parens expr
          <|> ifThenElse
          <|> lambda
          <|> variable
+         <|> caseOf
 
 letform :: Parser Exp
 letform = do
@@ -76,6 +77,27 @@ ifThenElse = do
   reserved "else"
   e <- expr
   return $ EIf pred t e
+
+type MatchArm = (Pattern, Exp)
+
+casePattern :: Parser Pattern
+casePattern = PLit . LInt <$> integer
+--casePattern = PVar <$> identifier
+
+caseArms :: Parser MatchArm
+caseArms = do
+  patter <- casePattern
+  reservedOp "->"
+  result <- expr
+  return (patter, result)
+
+caseOf :: Parser Exp
+caseOf = do
+  reserved "case"
+  scrutinee <- expr
+  reserved "of"
+  arms <- caseArms `sepBy1` comma
+  return $ ECase scrutinee arms
 
 -- Represents a top level declaration, binding a name to an expression.
 type Binding = (String, Exp)
