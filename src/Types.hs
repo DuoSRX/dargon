@@ -1,5 +1,7 @@
 module Types where
 
+import Data.List (intercalate)
+
 data Exp
   -- Variable
   = EVar String
@@ -27,15 +29,12 @@ data Pattern
   -- | PWildcard
   deriving (Eq, Ord, Show)
 
--- foo = ECase (EVar "x") [ (PLit (LInt 0), ELit (LBool True))
---                        , (PLit (LInt 1), ELit (LBool False))
---                        , (PVar "y",      EVar "z")]
-
 data Lit
   = LInt Integer
   | LBool Bool
   | LChar Char
   | LString String
+  | LTup [Exp]
   deriving (Eq, Ord)
 
 data Binop = Add | Sub | Mul | Eql
@@ -48,6 +47,7 @@ data Type
   | TChar
   | TString
   | TFun Type Type
+  | TCon String -- Type constructor
   deriving (Eq, Ord)
 
 -- List of bound type variables and a (maybe open) type
@@ -58,6 +58,7 @@ instance Show Type where
 
 prType :: Type -> String
 prType (TVar n) = n
+prType (TCon s) = s
 prType TInt = "Int"
 prType TBool = "Bool"
 prType TChar = "Char"
@@ -103,6 +104,7 @@ prLit (LInt i) = show i
 prLit (LBool b) = if b then "True" else "False"
 prLit (LChar c) = show c
 prLit (LString s) = s
+prLit (LTup xs) = "(" ++ (intercalate ", " (map prExp xs)) ++ ")"
 
 instance Show Scheme where
   show = prScheme

@@ -1,6 +1,7 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module TypeInference where
 
+import Data.List (intercalate)
 import Data.Maybe (fromMaybe)
 import Control.Monad.Except
 import Control.Monad.Trans.State
@@ -20,6 +21,7 @@ class Types t where
 
 instance Types Type where
   ftv (TVar n) = Set.fromList [n]
+  ftv (TCon _) = Set.empty
   ftv TInt     = Set.empty
   ftv TBool    = Set.empty
   ftv TChar    = Set.empty
@@ -142,11 +144,14 @@ varBind u t
   | u `Set.member` ftv t = throwError $ OccursCheck u t
   | otherwise = return (Map.singleton u t)
 
-tiLit :: Lit -> TI (Subst, Type)
-tiLit (LInt _) = return (nullSubst, TInt)
-tiLit (LBool _) = return (nullSubst, TBool)
-tiLit (LChar _) = return (nullSubst, TChar)
-tiLit (LString _) = return (nullSubst, TString)
+tiLit :: TypeEnv -> Lit -> TI (Subst, Type)
+tiLit _ (LInt _) = return (nullSubst, TInt)
+tiLit _ (LBool _) = return (nullSubst, TBool)
+tiLit _ (LChar _) = return (nullSubst, TChar)
+tiLit _ (LString _) = return (nullSubst, TString)
+tiLit env (LTup xs) = do
+  types <- map snd <$> mapM (ti env) xs
+  return (nullSubst, TCon $ "(" ++ intercalate ", " (map show types) ++ ")")
 
 patternToExp :: Pattern -> Exp
 patternToExp (PVar v) = EVar v
@@ -154,7 +159,7 @@ patternToExp (PLit l) = ELit l
 
 -- Infers types for expressions
 ti :: TypeEnv -> Exp -> TI (Subst, Type)
-ti _ (ELit l) = tiLit l
+ti env (ELit l) = tiLit env l
 ti (TypeEnv env) (EVar n) =
   case Map.lookup n env of
     Just sigma -> do

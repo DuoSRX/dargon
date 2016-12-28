@@ -38,8 +38,16 @@ stringLit = do
 expr :: Parser Exp
 expr = foldl1 EApp <$> many1 term
 
+tup :: Parser Exp
+tup = do
+  char '{'
+  e <- allExp `sepBy1` comma
+  char '}'
+  return $ ELit (LTup e)
+
 allExp :: Parser Exp
 allExp =     parens expr
+         <|> tup
          <|> number
          <|> stringLit
          <|> charLit

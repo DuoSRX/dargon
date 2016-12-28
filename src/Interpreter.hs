@@ -1,6 +1,7 @@
 module Interpreter where
 
 import Control.Monad.Identity
+import Data.List (intercalate)
 import qualified Data.Map as Map
 
 import Types
@@ -9,6 +10,7 @@ data Value
   = VInt Integer
   | VBool Bool
   | VChar Char
+  | VTup [Value]
   | VString String
   | VClosure String Exp TermEnv
   deriving (Eq)
@@ -18,6 +20,7 @@ instance Show Value where
   show (VBool b) = show b
   show (VChar c) = show c
   show (VString s) = s
+  show (VTup xs) = "{" ++ (intercalate ", " (map show xs)) ++ "}"
   show x = show x
 
 type TermEnv = Map.Map String Value
@@ -41,6 +44,9 @@ eval env expr = case expr of
   ELit (LBool x) -> return $ VBool x
   ELit (LChar x) -> return $ VChar x
   ELit (LString x) -> return $ VString x
+  ELit (LTup xs) -> do
+    values <- mapM (eval env) xs
+    return $ VTup values
 
   ECase scrutinee arms -> do
     scrutinee' <- eval env scrutinee
